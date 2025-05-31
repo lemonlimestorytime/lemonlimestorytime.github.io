@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lemon & Lime Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* Basic Reset & Body Styles */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Nunito', sans-serif; /* A modern, friendly sans-serif font */
+      background-color: #e0f7fa; /* A slightly softer, inviting blue */
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh; /* Ensure body takes full viewport height */
+      justify-content: center; /* Center content vertically */
+    }
+
+    /* Header Styles */
+    h1 {
+      font-family: 'Chakra Petch', sans-serif; /* A bolder, more game-like font */
+      font-size: 3.5em; /* Larger, more impactful title */
+      color: #2196f3; /* A vibrant blue for the title */
+      text-align: center;
+      margin-bottom: 50px;
+      text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1); /* More pronounced shadow */
+      letter-spacing: 2px; /* A little spacing for style */
+    }
+
+    /* Navigation List Styles */
+    .game-list {
+      list-style-type: none; /* Remove bullet points */
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 20px; /* Space between list items */
+    }
+
+    .game-list li {
+      background-color: #ffffff; /* White background for list items */
+      border-radius: 10px; /* Rounded corners */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth hover effects */
+    }
+
+    .game-list li:hover {
+      transform: translateY(-5px); /* Lift effect on hover */
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+    }
+
+    .game-list a {
+      text-decoration: none; /* Remove underline from links */
+      color: #007bff; /* A standard blue for links */
+      font-weight: bold;
+      font-size: 1.5em; /* Larger link text */
+      display: block; /* Make the entire list item clickable */
+      padding: 15px 30px; /* Ample padding inside the link area */
+      text-align: center;
+    }
+
+    .game-list a:hover {
+      color: #0056b3; /* Darker blue on hover */
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Lemon & Lime Games!</h1>
+
+  <ul class="game-list">
+    <li><a href="balloon.html">Balloon Blower</a></li>
+    <li><a href="shooting.html">Space Shooter</a></li>
+    <li><a href="bowling/bowling_index.html">Bowling</a></li>
+  </ul>
+
+</body>
+</html>

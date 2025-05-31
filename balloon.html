@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balloon Blower (JS)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Basic styling for the body and canvas container */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Full viewport height */
+            background-color: #f0f0f0; /* Light gray background for the page */
+            overflow: hidden; /* Prevent scrolling */
+            position: relative; /* Needed for absolute positioning of overlay/timer */
+        }
+
+        /* Canvas styling to center and give it a border/shadow */
+        canvas {
+            display: block;
+            background-color: #87CEEB; /* Sky blue background for the game itself */
+            border-radius: 15px; /* Rounded corners for the game area */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Soft shadow */
+            max-width: 90vw; /* Responsive width */
+            max-height: 90vh; /* Responsive height */
+            aspect-ratio: 880 / 660; /* Maintain aspect ratio from your Pygame constants */
+            margin: 20px; /* Margin around the canvas */
+            position: relative; /* Needed for proper stacking context */
+            z-index: 1; /* Ensure canvas is below overlay but above background */
+        }
+
+        /* Styling for game messages (overlay) */
+        .game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #000; /* Black text for messages */
+            pointer-events: none; /* Allow clicks to pass through to canvas (though we use key events) */
+            z-index: 10; /* Ensure it's above the canvas */
+            background-color: rgba(255, 255, 255, 0.7); /* Slightly transparent white background for readability */
+            padding: 30px 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-width: 80%; /* Limit width on smaller screens */
+        }
+
+        .game-message h1 {
+            font-size: 4em; /* Extra large font for title */
+            color: #FFD700; /* Yellow for title */
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3); /* Text shadow for title */
+        }
+
+        .game-message p {
+            font-size: 1.8em; /* Medium font for instructions/score */
+            margin-top: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2); /* Text shadow for general text */
+        }
+        
+        /* NEW: Styling for the time display at the top */
+        #timeDisplay {
+            position: absolute;
+            top: 20px; /* Distance from the top */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2.5em; /* Large font for visibility */
+            font-weight: bold;
+            color: #4CAF50; /* Green color for score/time */
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            z-index: 5; /* Above canvas but below overlay */
+            display: none; /* Hidden by default, shown during play */
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .game-message h1 {
+                font-size: 2.5em;
+            }
+            .game-message p {
+                font-size: 1.2em;
+            }
+            #timeDisplay {
+                font-size: 1.8em; /* Adjust for smaller screens */
+                top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="timeDisplay">Time: 0</div>
+
+    <div id="gameOverlay" class="game-message">
+        <h1 id="titleText">Balloon Blower!</h1>
+        <p id="instructionText">Press SPACE to Start!</p>
+        <p id="scoreText" style="display: none;"></p>
+    </div>
+
+    <script>
+        // Get the canvas and its 2D rendering context
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas dimensions based on your Pygame constants
+        const SCREEN_WIDTH = 880;
+        const SCREEN_HEIGHT = 660;
+        canvas.width = SCREEN_WIDTH;
+        canvas.height = SCREEN_HEIGHT;
+
+        // Get overlay elements
+        const gameOverlay = document.getElementById('gameOverlay');
+        const titleText = document.getElementById('titleText');
+        const instructionText = document.getElementById('instructionText');
+        const scoreText = document.getElementById('scoreText'); // This will be used for final score on game over
+
+        // NEW: Get the time display element
+        const timeDisplay = document.getElementById('timeDisplay');
+
+        // --- Game Constants (from your Python script) ---
+        const BALLOON_RADIUS = 30;
+        const BALLOON_COLOR = 'red';
+        const GRAVITY = 0.3;
+        const FAN_WIND_HEIGHT = 150;
+        const MIN_FAN_LAUNCH_VELOCITY = -20.0;
+        const MAX_FAN_LAUNCH_VELOCITY = -14.0;
+        const FAN_RANDOM_X_FORCE = 3.0;
+        const OFFSCREEN_TOP_DRIFT_MAGNITUDE = 5.0;
+        const FAN_WIDTH = 100;
+        const FAN_HEIGHT = 30;
+        const FAN_COLOR = 'blue';
+        const FAN_SPEED = 7;
+
+        // --- Game State Variables ---
+        // MODIFIED: Added a new game state for the rules screen
+        let gameState = "START_SCREEN"; // Initial state
+        let score = 0;
+        let startTime = 0; // Milliseconds from performance.now()
+
+        // --- Game Objects (Classes) ---
+
+        class Balloon {
+            constructor() {
+                this.resetPosition();
+                this.velocityY = 0;
+                this.velocityX = 0;
+                this.offscreenTopDriftSet = false;
+            }
+
+            resetPosition() {
+                this.x = SCREEN_WIDTH / 2;
+                this.y = SCREEN_HEIGHT / 4;
+                this.velocityY = 0;
+                this.velocityX = 0;
+                this.offscreenTopDriftSet = false;
+            }
+
+            applyGravity() {
+                this.velocityY += GRAVITY;
+                if (this.velocityY > 10) { // Cap downward speed
+                    this.velocityY = 10;
+                }
+            }
+
+            applyFanForce(fanRect) {
+                // Check if balloon is within horizontal range of the fan AND within its upward wind effect
+                // Note: Canvas Y-axis is top-down, so balloon.y is its top, balloon.y + 2*BALLOON_RADIUS is its bottom
+                if (this.x + BALLOON_RADIUS * 0.5 > fanRect.left &&
+                    this.x - BALLOON_RADIUS * 0.5 < fanRect.right &&
+                    this.y + BALLOON_RADIUS * 2 > fanRect.top - FAN_WIND_HEIGHT && // Balloon bottom is above wind top
+                    this.y + BALLOON_RADIUS * 2 < fanRect.top) { // Balloon bottom is below fan top
+
+                    this.velocityY = Math.random() * (MAX_FAN_LAUNCH_VELOCITY - MIN_FAN_LAUNCH_VELOCITY) + MIN_FAN_LAUNCH_VELOCITY;
+                    this.velocityX = Math.random() * (FAN_RANDOM_X_FORCE * 2) - FAN_RANDOM_X_FORCE;
+                    this.offscreenTopDriftSet = false; // Reset drift when blown by fan
+                }
+            }
+
+            update() {
+                this.y += this.velocityY;
+                this.x += this.velocityX;
+
+                // Logic for handling movement off the top of the screen
+                if (this.y + BALLOON_RADIUS * 2 < 0) { // If balloon is completely above the screen
+                    if (!this.offscreenTopDriftSet) {
+                        this.velocityX = Math.random() * (OFFSCREEN_TOP_DRIFT_MAGNITUDE * 2) - OFFSCREEN_TOP_DRIFT_MAGNITUDE;
+                        this.offscreenTopDriftSet = true;
+                    }
+                } else {
+                    this.offscreenTopDriftSet = false; // Reset flag when back on screen
+                }
+
+                // Side boundary checks (bounce off walls)
+                if (this.x - BALLOON_RADIUS < 0) {
+                    this.x = BALLOON_RADIUS;
+                    this.velocityX = -this.velocityX * 0.7; // Bounce with some energy loss
+                } else if (this.x + BALLOON_RADIUS > SCREEN_WIDTH) {
+                    this.x = SCREEN_WIDTH - BALLOON_RADIUS;
+                    this.velocityX = -this.velocityX * 0.7; // Bounce with some energy loss
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y + BALLOON_RADIUS, BALLOON_RADIUS, 0, Math.PI * 2);
+                ctx.fillStyle = BALLOON_COLOR;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        class Fan {
+            constructor() {
+                this.x = SCREEN_WIDTH / 2 - FAN_WIDTH / 2;
+                this.y = SCREEN_HEIGHT - 50 - FAN_HEIGHT; // Position from bottom
+                this.speedX = 0;
+            }
+
+            update() {
+                this.x += this.speedX;
+                // Keep fan within screen bounds
+                if (this.x < 0) {
+                    this.x = 0;
+                } else if (this.x + FAN_WIDTH > SCREEN_WIDTH) {
+                    this.x = SCREEN_WIDTH - FAN_WIDTH;
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = FAN_COLOR;
+                ctx.fillRect(this.x, this.y, FAN_WIDTH, FAN_HEIGHT);
+            }
+
+            // Helper to get fan's bounding box for collision
+            getRect() {
+                return {
+                    left: this.x,
+                    top: this.y,
+                    right: this.x + FAN_WIDTH,
+                    bottom: this.y + FAN_HEIGHT
+                };
+            }
+        }
+
+        // --- Game Object Instances ---
+        const balloon = new Balloon();
+        const fan = new Fan();
+
+        // --- Game Initialization/Reset Function ---
+        function newGame() {
+            balloon.resetPosition();
+            fan.x = SCREEN_WIDTH / 2 - FAN_WIDTH / 2; // Reset fan position
+            fan.speedX = 0; // Stop fan movement
+            score = 0;
+            startTime = performance.now(); // Use high-resolution timer
+            gameState = "PLAYING"; // Transition to playing state
+
+            // Hide overlay messages
+            gameOverlay.style.display = 'none';
+            // NEW: Show time display during gameplay
+            timeDisplay.style.display = 'block';
+            scoreText.style.display = 'none'; // Ensure final score is hidden during play
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('keydown', (event) => {
+            if (event.code === 'ArrowLeft') {
+                fan.speedX = -FAN_SPEED;
+            } else if (event.code === 'ArrowRight') {
+                fan.speedX = FAN_SPEED;
+            } else if (event.code === 'Space') {
+                // MODIFIED: Handle transitions between start, rules, and game states
+                if (gameState === "START_SCREEN") {
+                    gameState = "RULES_SCREEN"; // Go to rules screen first
+                } else if (gameState === "RULES_SCREEN" || gameState === "GAME_OVER") {
+                    newGame(); // Start or restart the game
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            if (event.code === 'ArrowLeft' && fan.speedX < 0) {
+                fan.speedX = 0;
+            } else if (event.code === 'ArrowRight' && fan.speedX > 0) {
+                fan.speedX = 0;
+            }
+        });
+
+        // --- Main Game Loop (using requestAnimationFrame) ---
+        function gameLoop() {
+            // Update game logic
+            if (gameState === "PLAYING") {
+                fan.update();
+                balloon.applyGravity();
+                balloon.applyFanForce(fan.getRect()); // Pass fan's bounding box
+                balloon.update();
+
+                // Check if balloon falls off screen
+                if (balloon.y + BALLOON_RADIUS * 2 >= SCREEN_HEIGHT) {
+                    gameState = "GAME_OVER";
+                    // Display final score on overlay
+                    titleText.textContent = "GAME OVER!";
+                    titleText.style.color = 'red';
+                    // MODIFIED: Format final score to 1 decimal place
+                    instructionText.textContent = `You lasted: ${score.toFixed(1)} seconds!`; 
+                    scoreText.style.display = 'block'; // Show final score
+                    gameOverlay.style.display = 'block'; // Show overlay
+                    // NEW: Hide time display on game over
+                    timeDisplay.style.display = 'none'; 
+                }
+
+                // MODIFIED: Update score (time elapsed) - removed Math.floor()
+                score = (performance.now() - startTime) / 1000; 
+            }
+
+            // Drawing (Render)
+            ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT); // Clear canvas (background is handled by CSS)
+
+            if (gameState === "PLAYING" || gameState === "GAME_OVER") {
+                fan.draw();
+                balloon.draw();
+                
+                // Draw ground line
+                ctx.beginPath();
+                ctx.moveTo(0, SCREEN_HEIGHT - 1);
+                ctx.lineTo(SCREEN_WIDTH, SCREEN_HEIGHT - 1);
+                ctx.strokeStyle = 'lightgray';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.closePath();
+
+                // MODIFIED: Update the dedicated time display element toFixed(1)
+                if (gameState === "PLAYING") {
+                    timeDisplay.textContent = `Time: ${score.toFixed(1)}`;
+                }
+            }
+
+            // Display game state messages via HTML overlay
+            // MODIFIED: Added RULES_SCREEN state handling
+            if (gameState === "START_SCREEN") {
+                gameOverlay.style.display = 'block';
+                titleText.textContent = "Balloon Blower!";
+                titleText.style.color = '#FFD700';
+                instructionText.innerHTML = `
+                <p style="margin-top: 8px; font-size: 1.5em;"> Press SPACE to Start! </p>
+                <p style="margin-top: 8px; font-size: .8em;"> Created by Lemon & Lime Games </p>
+                `;
+                scoreText.style.display = 'none'; // Hide final score text
+                timeDisplay.style.display = 'none'; // Hide time display
+
+                // Remove restart instruction if present
+                const existingRestartP = document.getElementById('restartInstruction');
+                if (existingRestartP) {
+                    gameOverlay.removeChild(existingRestartP);
+                }
+            } else if (gameState === "RULES_SCREEN") {
+                gameOverlay.style.display = 'block';
+                titleText.textContent = "How to Play:";
+                titleText.style.color = '#006400'; // Dark green for rules title
+                instructionText.innerHTML = `
+                    <p>Move the fan by using the <span style="font-weight: bold;">LEFT/RIGHT Arrow Keys</span>. </p>
+                    <p>Keep the balloon in the air as long as you can!</p>
+                    <p style="margin-top: 15px; font-size: 1.5em;">Press <span style="font-weight: bold;">SPACE</span> to Begin!</p>
+                `;
+                instructionText.style.fontSize = "1.6em"; // Slightly smaller font size for the general rule text
+                instructionText.style.marginTop = "0"; // Remove top margin from the instructionText container itself
+                scoreText.style.display = 'none'; // Hide final score
+                timeDisplay.style.display = 'none'; // Hide time display
+                 // Remove restart instruction if present
+                 const existingRestartP = document.getElementById('restartInstruction');
+                if (existingRestartP) {
+                    gameOverlay.removeChild(existingRestartP);
+                }
+            }
+            else if (gameState === "GAME_OVER") {
+                gameOverlay.style.display = 'block';
+                titleText.textContent = "GAME OVER!";
+                titleText.style.color = 'red';
+                instructionText.textContent = `You lasted: ${score.toFixed(1)} seconds!`; // Updated text for final score
+                
+                // Add restart instruction if not already present
+                let restartP = document.getElementById('restartInstruction');
+                if (!restartP) {
+                    restartP = document.createElement('p');
+                    restartP.id = 'restartInstruction'; // Give it an ID to easily find/remove
+                    restartP.textContent = "Press SPACE to Restart";
+                    restartP.style.fontSize = "1.2em";
+                    restartP.style.marginTop = "10px";
+                    restartP.style.textShadow = "1px 1px 2px rgba(0,0,0,0.2)";
+                    gameOverlay.appendChild(restartP);
+                }
+                scoreText.style.display = 'none'; // Ensure this specific scoreText is hidden
+                timeDisplay.style.display = 'none'; // Hide the top time display
+            }
+            
+            // Request next frame
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start the game loop when the script loads
+        window.onload = gameLoop;
+
+        // Handle window resizing for responsive canvas (though fixed aspect ratio is set)
+        window.addEventListener('resize', () => {
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+/* Basic styling to center the canvas and provide a background */
+body {
+    margin: 0;
+    overflow: hidden; /* Prevent scrollbars */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    min-height: 100vh; /* Full viewport height */
+    background-color: #000;
+    font-family: "Inter", sans-serif; /* Use Inter font */
+}
+
+canvas {
+    /* REMOVE OR COMMENT OUT THIS LINE: background-color: black; */
+    border: 2px solid white; /* A border around the game area */
+    border-radius: 8px; /* Rounded corners for the canvas */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    display: block; /* Remove extra space below canvas */
+    max-width: 100%; /* Ensure it fits on smaller screens */
+    height: auto; /* Maintain aspect ratio */
+}

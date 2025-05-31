@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Shooting Game (JS)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Basic styling for the body and canvas container */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Full viewport height */
+            background-color: #f0f0f0; /* Light gray background for the page */
+            overflow: hidden; /* Prevent scrolling */
+        }
+
+        /* Canvas styling to center and give it a border/shadow */
+        canvas {
+            display: block;
+            background-color: #000000; /* Black background for the game itself */
+            border-radius: 15px; /* Rounded corners for the game area */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Soft shadow */
+            max-width: 90vw; /* Responsive width */
+            max-height: 90vh; /* Responsive height */
+            aspect-ratio: 800 / 600; /* Maintain aspect ratio from your Pygame constants */
+            margin: 20px; /* Margin around the canvas */
+        }
+
+        /* Styling for game messages - overlay on top of the canvas */
+        .game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #fff; /* White text for messages */
+            pointer-events: none; /* Allow clicks to pass through to canvas */
+            z-index: 10; /* Ensure it's above the canvas */
+            display: flex; /* Use flexbox for vertical alignment */
+            flex-direction: column; /* Stack items vertically */
+            justify-content: center; /* Center vertically by default */
+            align-items: center; /* Center horizontally */
+            width: 100%; /* Take full width to center text reliably */
+            height: 100%; /* Take full height to center text reliably */
+        }
+
+        .game-message h1 {
+            font-size: 4em; /* Large title font size */
+            color: #ffffff; /* White for title */
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3); /* Text shadow */
+        }
+
+        /* Default paragraph styling */
+        .game-message p {
+            font-size: 1.8em; /* Medium font for instructions/score */
+            margin-top: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2); /* Text shadow */
+            max-width: 80%; /* Limit width to prevent overflow */
+            word-wrap: break-word; /* Allow long words to break */
+            overflow-wrap: break-word; /* Standard property for word breaking */
+        }
+
+        /* Specific styling for rules screen h1 */
+        .game-message h1.rules-title {
+            font-size: 3em; /* Smaller title for rules screen */
+            margin-bottom: 10px; /* Adjust margin for rules title */
+        }
+
+        /* Specific styling for rules screen paragraphs (the main rules) */
+        .game-message p.rule-text {
+            font-size: 1.1em; /* Smaller font for rules text */
+            margin-top: 5px; /* Reduced margin for tighter packing */
+            line-height: 1.3; /* Adjust line height for better fit */
+        }
+
+        /* Specific styling for the 'Press S to Play' text on rule screen */
+        .game-message p.rules-play-button {
+            font-size: 1.6em; /* Slightly larger than rule text, but smaller than default */
+            /* margin-top: auto; /* Pushes this element to the very bottom */
+            /* padding-bottom: 10px; /* Add some padding from the absolute bottom */
+        }
+
+        .game-message .green-text {
+            color: #00FF00; /* Green for "Press Any Key" */
+        }
+
+        .game-message .blue-text {
+            color: #0000FF; /* Green for "Press Any Key" */
+        }
+
+        .game-message .red-text {
+            color: #FF0000; /* Red for "GAME OVER" */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .game-message h1 {
+                font-size: 2.5em;
+            }
+            .game-message p {
+                font-size: 1.2em;
+            }
+            .game-message h1.rules-title {
+                font-size: 2em;
+            }
+            .game-message p.rule-text {
+                font-size: 0.9em; /* Even smaller on mobile for rules */
+                margin-top: 3px;
+            }
+            .game-message p.rules-play-button {
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="gameOverlay" class="game-message">
+        <h1 id="titleText" class="blue-text">Space Shooter</h1>
+        <p id="instructionText" class="green-text">Press 'S' to Start</p>
+        <p id="creditText">Created by Lemon & Lime Games</p>
+        <p id="scoreInfoText" style="display: none;"></p>
+        <p id="hpInfoText" style="display: none;"></p>
+        <p id="ruleMoveText" style="display: none;"></p>
+        <p id="ruleShootText" style="display: none;"></p>
+        <p id="timeInfoText" style="display: none;"></p> </div>
+
+    <script>
+        // Get the canvas and its 2D rendering context
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas dimensions based on your Pygame constants
+        const SCREEN_WIDTH = 800;
+        const SCREEN_HEIGHT = 600;
+        canvas.width = SCREEN_WIDTH;
+        canvas.height = SCREEN_HEIGHT;
+
+        // Get overlay elements
+        const gameOverlay = document.getElementById('gameOverlay');
+        const titleText = document.getElementById('titleText');
+        const instructionText = document.getElementById('instructionText');
+        const creditText = document.getElementById('creditText');
+        const scoreInfoText = document.getElementById('scoreInfoText');
+        const hpInfoText = document.getElementById('hpInfoText');
+        const timeInfoText = document.getElementById('timeInfoText');
+
+        const ruleMoveText = document.getElementById('ruleMoveText');
+        const ruleShootText = document.getElementById('ruleShootText');
+
+
+        // --- Game Constants (from your Python script) ---
+        const PLAYER_SPEED = 5;
+        const BULLET_SPEED = 10;
+        const TARGET_SPEED = 3;
+        const TARGET_SPAWN_PROBABILITY = 0.015; // 1.5% chance per frame for a target to spawn
+        const RESTART_DELAY = 10000; // 10 seconds in milliseconds
+
+        // Colors
+        const WHITE = 'white';
+        const BLACK = 'black';
+        const RED = 'red';
+        const GREEN = 'green';
+        const BLUE = 'blue';
+        const YELLOW = 'yellow';
+
+        // --- Game State Variables ---
+        let gameState = "START_SCREEN"; // "START_SCREEN", "RULES_SCREEN", "PLAYING", "GAME_OVER"
+        let score = 0;
+        let playerHP = 0;
+        let startTime = 0; // Milliseconds from performance.now() for game duration (still used for score if needed)
+        let gameOverTime = 0; // Milliseconds from performance.now() when game ended
+
+        // --- Game Objects (Instances) ---
+        let player;
+        let bullets = []; // Array to hold bullet instances
+        let targets = []; // Array to hold target instances
+
+
+        // --- Web Audio API Setup ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Function to play a simple shooting sound (generated)
+        function playGeneratedShootSound() {
+            const oscillator = audioCtx.createOscillator();
+            oscillator.type = 'square'; // A sine wave is smooth, a square wave is buzzy
+
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // Set the initial frequency (pitch) of the sound - Start at 800 Hz
+            const gainNode = audioCtx.createGain(); // Create a gain node (volume control)
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime); // Set initial volume - Start at 50% volume
+            oscillator.connect(gainNode); // Connect the nodes: oscillator -> gainNode -> speakers
+            gainNode.connect(audioCtx.destination);
+            oscillator.start(audioCtx.currentTime); // Schedule the sound to start now
+
+            // --- Create a quick "decay" effect for the sound ---
+            oscillator.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.1); // Drop to 10 Hz over 0.1 seconds
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2); // Drop to near zero over 0.2 seconds
+            oscillator.stop(audioCtx.currentTime + 0.2); // Stop after 0.2 seconds
+        }
+
+        // Function to play a generated explosion sound
+        function playGeneratedExplosionSound() {
+            // Component 1: Low-frequency thump (oscillator)
+            const rumbleOscillator = audioCtx.createOscillator();
+            rumbleOscillator.type = 'triangle'; // Triangle or sine for a smoother rumble
+            rumbleOscillator.frequency.setValueAtTime(100, audioCtx.currentTime); // Start at 100 Hz
+            const rumbleGain = audioCtx.createGain();
+            rumbleGain.gain.setValueAtTime(0.8, audioCtx.currentTime); // Initial volume for rumble
+            rumbleOscillator.connect(rumbleGain);
+            rumbleGain.connect(audioCtx.destination);
+            rumbleOscillator.start(audioCtx.currentTime);
+            rumbleOscillator.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.3); // Rapidly decay frequency and gain for the rumble
+            rumbleGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+            rumbleOscillator.stop(audioCtx.currentTime + 0.4);
+
+            // Component 2: Short burst of white noise (for the 'fizz' or 'shatter')
+            const bufferSize = audioCtx.sampleRate * 0.2; // 0.2 seconds of noise
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1; // Random values between -1 and 1
+            }
+            const noiseSource = audioCtx.createBufferSource();
+            noiseSource.buffer = noiseBuffer;
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.6, audioCtx.currentTime); // Initial volume for noise
+            noiseSource.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            noiseSource.start(audioCtx.currentTime);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2); // Rapidly decay gain for the noise
+            noiseSource.stop(audioCtx.currentTime + 0.2);
+        }
+
+        // --- Game Object Classes ---
+
+        class Player {
+            constructor() {
+                this.width = 50;
+                this.height = 50;
+                this.x = SCREEN_WIDTH / 2 - this.width / 2;
+                this.y = SCREEN_HEIGHT - 10 - this.height;
+                this.speedX = 0;
+            }
+
+            update() {
+                this.x += this.speedX;
+                // Keep player within screen bounds
+                if (this.x < 0) {
+                    this.x = 0;
+                }
+                if (this.x + this.width > SCREEN_WIDTH) {
+                    this.x = SCREEN_WIDTH - this.width;
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = BLUE;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+
+            shoot() {
+                // Create a new bullet instance
+                const bullet = new Bullet(this.x + this.width / 2, this.y);
+                bullets.push(bullet);
+
+                // Play the generated shooting sound!
+                playGeneratedShootSound();
+            }
+
+            getRect() { // Helper for collision detection
+                return { x: this.x, y: this.y, width: this.width, height: this.height };
+            }
+        }
+
+        class Bullet {
+            constructor(x, y) {
+                this.width = 10;
+                this.height = 20;
+                this.x = x - this.width / 2;
+                this.y = y - this.height;
+                this.speedY = -BULLET_SPEED;
+                this.active = true; // Flag to track if bullet is still in play
+            }
+
+            update() {
+                this.y += this.speedY;
+                // Deactivate if off-screen
+                if (this.y + this.height < 0) {
+                    this.active = false;
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = YELLOW;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+
+            getRect() { // Helper for collision detection
+                return { x: this.x, y: this.y, width: this.width, height: this.height };
+            }
+        }
+
+        class Target {
+            constructor(x, y) { // Constructor can now take x, y
+                this.width = 40;
+                this.height = 40;
+                this.x = x !== undefined ? x : Math.random() * (SCREEN_WIDTH - this.width);
+                this.y = y !== undefined ? y : Math.random() * -100 - 40; // Start off-screen above
+                this.speedY = TARGET_SPEED;
+                this.active = true; // Flag to track if target is still in play
+            }
+
+            update() {
+                this.y += this.speedY;
+                // Deactivate if off-screen AND reduce HP
+                if (this.y > SCREEN_HEIGHT) {
+                    this.active = false;
+                    playerHP--; // Reduce player HP if target goes off screen
+                    if (playerHP <= 0) {
+                        gameState = "GAME_OVER";
+                    }
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = RED;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+
+            getRect() { // Helper for collision detection
+                return { x: this.x, y: this.y, width: this.width, height: this.height };
+            }
+        }
+
+        // --- Game Initialization Function ---
+        function newGame() {
+            // Clear existing game objects
+            bullets = [];
+            targets = [];
+
+            // Create new player
+            player = new Player();
+
+            score = 0;
+            playerHP = 10; // Set initial HP for the player
+            // startTime is set when transitioning from RULES_SCREEN to PLAYING
+            gameState = "RULES_SCREEN"; // Start with rules screen
+            gameOverTime = 0; // Reset game over time
+            gameOverlay.style.display = 'flex'; // Ensure overlay is visible for rules
+        }
+
+        // --- Collision Detection Helper ---
+        // Checks if two rectangles intersect (used for sprites)
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        // Function to try and spawn a target without overlap
+        function spawnNonOverlappingTarget() {
+            const maxAttempts = 30; // Limit attempts to prevent infinite loops
+            const targetWidth = 40; // From Target class
+            const targetHeight = 40; // From Target class
+            let spawned = false;
+
+            for (let i = 0; i < maxAttempts; i++) {
+                const newX = Math.random() * (SCREEN_WIDTH - targetWidth);
+                const newY = Math.random() * -100 - 40; // Start off-screen above
+                const newTargetRect = { x: newX, y: newY, width: targetWidth, height: targetHeight };
+
+                let overlapping = false;
+                for (const existingTarget of targets) {
+                    // Only check active targets for overlap
+                    if (existingTarget.active && checkCollision(newTargetRect, existingTarget.getRect())) {
+                        overlapping = true;
+                        break;
+                    }
+                }
+
+                if (!overlapping) {
+                    targets.push(new Target(newX, newY)); // Pass calculated position
+                    spawned = true;
+                    break;
+                }
+            }
+            return spawned;
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('keydown', (event) => {
+            // Only 'S' key triggers state transitions from start/rules/game over screens
+            if (event.code === 'KeyS') {
+                if (gameState === "START_SCREEN") {
+                    newGame(); // newGame will set state to RULES_SCREEN
+                    return;
+                } else if (gameState === "RULES_SCREEN") {
+                    gameState = "PLAYING"; // Transition from rules to playing
+                    gameOverlay.style.display = 'none'; // Hide rules overlay
+                    startTime = performance.now(); // Start game timer now
+                    return;
+                } else if (gameState === "GAME_OVER") {
+                    const timeSinceGameOver = performance.now() - gameOverTime;
+                    if (timeSinceGameOver >= RESTART_DELAY) {
+                        newGame(); // newGame will set state to RULES_SCREEN
+                    }
+                    return; // Always return after handling 'S' key
+                }
+            }
+
+            // Handle player input only if game is playing
+            if (gameState === "PLAYING") {
+                if (event.code === 'ArrowLeft') {
+                    player.speedX = -PLAYER_SPEED;
+                } else if (event.code === 'ArrowRight') {
+                    player.speedX = PLAYER_SPEED;
+                } else if (event.code === 'Space') {
+                    player.shoot();
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            if (gameState === "PLAYING") {
+                if (event.code === 'ArrowLeft' || event.code === 'ArrowRight') {
+                    player.speedX = 0;
+                }
+            }
+        });
+
+        // --- Main Game Loop ---
+        function gameLoop(currentTime) {
+            // Update game logic only if playing
+            if (gameState === "PLAYING") {
+                // Update player
+                player.update();
+
+                // Spawn new targets (using the non-overlapping spawn function)
+                if (Math.random() < TARGET_SPAWN_PROBABILITY) {
+                    spawnNonOverlappingTarget();
+                }
+
+                // Update and clean up bullets
+                bullets.forEach(bullet => bullet.update());
+                bullets = bullets.filter(bullet => bullet.active); // Remove inactive bullets
+
+                // Update and clean up targets
+                targets.forEach(target => target.update());
+                targets = targets.filter(target => target.active); // Remove inactive targets
+
+                // Check for bullet-target collisions
+                bullets.forEach(bullet => {
+                    if (bullet.active) { // Only check active bullets
+                        targets.forEach(target => {
+                            if (target.active && checkCollision(bullet.getRect(), target.getRect())) {
+                                bullet.active = false; // Deactivate bullet
+                                target.active = false; // Deactivate target
+                                score += 10; // Increase score
+                                playGeneratedExplosionSound(); // <--- ADD THIS LINE: Play explosion sound here
+                            }
+                        });
+                    }
+                });
+
+                // Remove targets and bullets that were hit
+                bullets = bullets.filter(bullet => bullet.active);
+                targets = targets.filter(target => target.active);
+
+                // Check for player-target collisions (targets that hit player are removed)
+                targets.forEach(target => {
+                    if (target.active && checkCollision(player.getRect(), target.getRect())) {
+                        target.active = false; // Deactivate target
+                        playerHP--; // Reduce player HP
+                        if (playerHP <= 0) {
+                            gameState = "GAME_OVER";
+                            gameOverTime = performance.now(); // Set game over time
+                        }
+                    }
+                });
+                targets = targets.filter(target => target.active); // Remove hit targets
+
+                // Game now only ends when HP reaches 0, no time limit
+            }
+
+            // --- Drawing (Render) ---
+            ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT); // Clear the canvas
+
+            // Display game state messages via HTML overlay OR draw in-game stats on canvas
+            if (gameState === "START_SCREEN") {
+                gameOverlay.style.display = 'flex'; // Use flex to center overlay
+                gameOverlay.style.flexDirection = 'column'; // Ensure vertical stacking
+                gameOverlay.style.justifyContent = 'center'; // Reset to default centering
+                gameOverlay.style.alignItems = 'center'; // Reset to default centering
+                gameOverlay.style.padding = '0'; // Reset padding
+
+                //titleText.textContent = "Space Shooter";
+                //titleText.className = ''; // Remove rules-title class
+                //titleText.style.marginBottom = '20px'; // Reset margin
+
+                //instructionText.textContent = "Press 'S' to Start";
+                //instructionText.className = 'green-text'; // Apply green color class
+                //instructionText.style.marginTop = '10px'; // Reset margin
+                //instructionText.style.display = 'block'; // Make sure it's visible
+
+                //creditText.textContent = "Created by Lemon & Lime Games";
+                //creditText.style.marginTop = '8px'; // Reset margin
+                //creditText.style.display = 'block'; // Make sure it's visible
+
+                // Hide all other info texts and ensure no specific rule styles
+                scoreInfoText.style.display = 'none';
+                scoreInfoText.className = '';
+                hpInfoText.style.display = 'none';
+                hpInfoText.className = '';
+                timeInfoText.style.display = 'none';
+                timeInfoText.className = '';
+                ruleMoveText.style.display = 'none';
+                ruleMoveText.className = '';
+                ruleShootText.style.display = 'none';
+                ruleShootText.className = '';
+
+            } else if (gameState === "RULES_SCREEN") { // New RULES_SCREEN state
+                gameOverlay.style.display = 'flex';
+                gameOverlay.style.flexDirection = 'column'; // Stack items vertically
+                gameOverlay.style.justifyContent = 'center'; // <--- CHANGE THIS: Centers the content block vertically
+                gameOverlay.style.alignItems = 'center'; // Center horizontally
+                gameOverlay.style.padding = '20px'; // Add some padding around the rules
+                gameOverlay.style.gap = '15px'; // <--- ADD THIS: Adds space between flex items
+
+                titleText.textContent = "Game Rules";
+                titleText.className = 'rules-title'; // Apply smaller title class
+                titleText.style.marginBottom = '0'; // <--- CHANGE THIS: Reset margin as gap handles spacing
+                titleText.style.display = 'block'; // Ensure visibility
+
+                // Make sure all rule-related texts are visible and styled
+                instructionText.textContent = "Shoot falling targets for points.";
+                instructionText.className = 'rule-text';
+                instructionText.style.display = 'block';
+
+                scoreInfoText.textContent = "Lose HP if you get hit by targets or let them pass the bottom.";
+                scoreInfoText.className = 'rule-text';
+                scoreInfoText.style.display = 'block';
+
+                hpInfoText.textContent = "Game over if HP reaches 0.";
+                hpInfoText.className = 'rule-text';
+                hpInfoText.style.display = 'block';
+
+                ruleMoveText.textContent = "Move: Left/Right Arrow Keys";
+                ruleMoveText.className = 'rule-text';
+                ruleMoveText.style.display = 'block';
+
+                ruleShootText.textContent = "Shoot: Spacebar";
+                ruleShootText.className = 'rule-text';
+                ruleShootText.style.display = 'block';
+
+                // This element will now be spaced by 'gap'
+                timeInfoText.textContent = "Press 'S' to Play!";
+                timeInfoText.className = 'green-text'; // Remove rules-play-button class, it's not needed with gap
+                timeInfoText.style.marginTop = '0'; // <--- CHANGE THIS: Reset margin as gap handles spacing
+                timeInfoText.style.paddingBottom = '0'; // <--- CHANGE THIS: Reset padding as gap handles spacing
+                timeInfoText.style.display = 'block';
+
+            } else if (gameState === "GAME_OVER") {
+                gameOverlay.style.display = 'flex';
+                gameOverlay.style.flexDirection = 'column'; // Ensure vertical stacking
+                gameOverlay.style.justifyContent = 'center'; // Reset to center for game over screen
+                gameOverlay.style.alignItems = 'center'; // Reset to center
+                gameOverlay.style.padding = '0'; // Remove padding
+
+                titleText.className = ''; // Remove rules-title class
+                titleText.style.marginBottom = '20px'; // Reset margin
+
+                titleText.textContent = "GAME OVER!";
+                titleText.style.color = RED;
+                titleText.style.display = 'block'; // Ensure it's visible
+
+                instructionText.textContent = `Final Score: ${score}`;
+                instructionText.className = ''; // Remove any specific rule classes
+                instructionText.style.marginTop = '10px';
+                instructionText.style.display = 'block';
+
+                // Ensure all other rules-related texts are hidden and their classes reset
+                scoreInfoText.style.display = 'none';
+                scoreInfoText.className = '';
+                ruleMoveText.style.display = 'none';
+                ruleMoveText.className = '';
+                ruleShootText.style.display = 'none';
+                ruleShootText.className = '';
+
+                const timeSinceGameOver = currentTime - gameOverTime;
+                const restartCountdown = Math.max(0, Math.ceil((RESTART_DELAY - timeSinceGameOver) / 1000));
+
+                if (restartCountdown > 0) {
+                    hpInfoText.textContent = `Restart in: ${restartCountdown}s`;
+                    hpInfoText.className = ''; // No special color during countdown
+                } else {
+                    hpInfoText.textContent = "Press 'S' to Play Again";
+                    hpInfoText.className = 'green-text'; // Apply green color for restart
+                }
+                hpInfoText.style.display = 'block';
+                hpInfoText.style.marginTop = '10px';
+                timeInfoText.style.display = 'none'; // Hide the "Press S to Play" from rules screen
+                timeInfoText.className = '';
+
+
+            } else { // This handles the "PLAYING" state
+                gameOverlay.style.display = 'none'; // Hide overlay during play
+
+                // Draw in-game stats directly on canvas
+                ctx.font = "36px 'Inter', sans-serif";
+
+                ctx.fillStyle = WHITE;
+                ctx.fillText(`Score: ${score}`, 10, 40);
+
+                ctx.fillStyle = GREEN;
+                ctx.fillText(`HP: ${playerHP}`, 10, 80);
+            }
+
+            // Draw player, bullets, and targets only if in PLAYING state (or GAME_OVER but not RULES_SCREEN for clarity)
+            if (gameState === "PLAYING" || gameState === "GAME_OVER") {
+                if (player) { // Ensure player exists before drawing (after newGame has been called)
+                    player.draw();
+                }
+                bullets.forEach(bullet => bullet.draw());
+                targets.forEach(target => target.draw());
+            }
+
+            // Request the next animation frame
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start the game loop when the window loads
+        window.onload = () => {
+            // Call gameLoop once to set up the initial START_SCREEN display
+            gameLoop(performance.now());
+        };
+    </script>
+</body>
+</html>
