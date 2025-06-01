@@ -1,0 +1,469 @@
+body {
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #f0f0f0;
+    margin: 0;
+    overflow: hidden; /* Prevent scrollbars when overlays are active */
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* --- Game Screens & Overlays --- */
+.game-screen {
+    background-color: #fff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    text-align: center; /* This helps center text-based content */
+    width: clamp(300px, 90%, 500px); /* Responsive width */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center children horizontally in a column flex container */
+    justify-content: center;
+    min-height: 400px;
+    box-sizing: border-box;
+}
+
+.game-screen.hidden {
+    display: none;
+}
+
+#start-screen .subtitle {
+    font-size: 1.2em;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+/* --- Timer & Moves Display Container --- */
+#game-info {
+    display: flex;
+    justify-content: center; /* Changed from space-around to center */
+    gap: 20px; /* Added gap for spacing between timer and moves */
+    align-items: center;
+    width: 100%; /* Ensure it takes full width of its parent */
+    margin-bottom: 15px;
+    padding: 5px 0;
+}
+
+/* --- Timer & Moves Individual Displays --- */
+#timer-display,
+#moves-display {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #007B9E;
+    background-color: #e6f7ff;
+    padding: 8px 15px;
+    border-radius: 8px;
+    border: 1px solid #b3e0ff;
+    min-width: 150px;
+    text-align: center;
+    box-sizing: border-box;
+    /* Removed margin-bottom from timer-display as it's now in #game-info */
+}
+
+/* --- Puzzle Container --- */
+#puzzle-container {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 5px;
+    width: 315px;
+    height: 315px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    position: relative;
+    margin: 0 auto 20px auto; /* ADDED: This helps explicitly center it and maintains bottom margin */
+}
+
+.puzzle-tile {
+    width: 100px;
+    height: 100px;
+    background-color: #4CAF50;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2em;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.2s ease, transform 0.2s ease, opacity 0.3s ease;
+    box-sizing: border-box;
+    will-change: order, transform;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.puzzle-tile:hover {
+    background-color: #45a049;
+    transform: scale(1.02);
+}
+
+.empty-tile {
+    background-color: #eee;
+    cursor: default;
+    opacity: 0;
+    transition: background-color 0.2s ease, transform 0.2s ease, opacity 0.3s ease;
+}
+
+.empty-tile:hover {
+    background-color: #eee;
+    transform: none;
+}
+
+/* --- Controls --- */
+#controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+#controls button,
+.game-screen button {
+    padding: 12px 25px;
+    font-size: 1.1em;
+    cursor: pointer;
+    background-color: #008CBA;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    min-width: 120px;
+}
+
+#controls button:hover,
+.game-screen button:hover {
+    background-color: #006B8E;
+    transform: translateY(-2px);
+}
+
+#controls button:active,
+.game-screen button:active {
+    transform: translateY(0);
+}
+
+#message-display {
+    margin-top: 20px;
+    font-size: 1.1em;
+    color: #d9534f;
+    font-weight: bold;
+    min-height: 2em;
+}
+
+/* --- Overlays --- */
+.game-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.game-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.overlay-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.game-overlay.active .overlay-content {
+    transform: scale(1);
+}
+
+.overlay-content h2 {
+    color: #4CAF50;
+    margin-bottom: 15px;
+    font-size: 2.2em;
+}
+
+.overlay-content p {
+    font-size: 1.2em;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.overlay-content #final-time {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #007B9E;
+    margin-top: 5px;
+    display: block;
+}
+
+.overlay-content button {
+    margin-top: 25px;
+    background-color: #28a745;
+}
+body {
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #f0f0f0;
+    margin: 0;
+    overflow: hidden; /* Prevent scrollbars when overlays are active */
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px; /* Default h1 margin */
+}
+
+/* Specific adjustment for h1 on the start screen */
+#start-screen h1 {
+    margin-bottom: 10px; /* Reduced space below the title on start screen */
+}
+
+/* --- Game Screens & Overlays --- */
+.game-screen {
+    background-color: #fff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    width: clamp(300px, 90%, 500px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    box-sizing: border-box;
+}
+
+.game-screen.hidden {
+    display: none;
+}
+
+/* Removed: #start-screen .subtitle { ... } */
+
+/* NEW: Styling for the credit text */
+#credit-text {
+    font-size: 0.95em;
+    color: #666;
+    margin-top: 15px; /* Space above the credit text */
+}
+
+/* --- Timer & Moves Display Container --- */
+#game-info {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 5px 0;
+}
+
+/* --- Timer & Moves Individual Displays --- */
+#timer-display,
+#moves-display {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #007B9E;
+    background-color: #e6f7ff;
+    padding: 8px 15px;
+    border-radius: 8px;
+    border: 1px solid #b3e0ff;
+    min-width: 150px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+/* --- Puzzle Container --- */
+#puzzle-container {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 5px;
+    width: 315px;
+    height: 315px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    /* Adjusted margin-bottom to 0 because it's handled by margin: 0 auto ... */
+    position: relative;
+    margin: 0 auto 20px auto; /* Centered with 20px bottom margin */
+}
+
+.puzzle-tile {
+    width: 100px;
+    height: 100px;
+    background-color: #4CAF50;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2em;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.2s ease, transform 0.2s ease, opacity 0.3s ease;
+    box-sizing: border-box;
+    will-change: order, transform;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.puzzle-tile:hover {
+    background-color: #45a049;
+    transform: scale(1.02);
+}
+
+.empty-tile {
+    background-color: #eee;
+    cursor: default;
+    opacity: 0;
+    transition: background-color 0.2s ease, transform 0.2s ease, opacity 0.3s ease;
+}
+
+.empty-tile:hover {
+    background-color: #eee;
+    transform: none;
+}
+
+/* --- Controls --- */
+#controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+#controls button,
+.game-screen button {
+    padding: 12px 25px;
+    font-size: 1.1em;
+    cursor: pointer;
+    background-color: #008CBA;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    min-width: 120px;
+}
+
+#controls button:hover,
+.game-screen button:hover {
+    background-color: #006B8E;
+    transform: translateY(-2px);
+}
+
+#controls button:active,
+.game-screen button:active {
+    transform: translateY(0);
+}
+
+#message-display {
+    margin-top: 20px;
+    font-size: 1.1em;
+    color: #d9534f;
+    font-weight: bold;
+    min-height: 2em;
+}
+
+/* --- Overlays --- */
+.game-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.game-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.overlay-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.game-overlay.active .overlay-content {
+    transform: scale(1);
+}
+
+.overlay-content h2 {
+    color: #4CAF50;
+    margin-bottom: 15px;
+    font-size: 2.2em;
+}
+
+.overlay-content p {
+    font-size: 1.2em;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.overlay-content #final-time {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #007B9E;
+    margin-top: 5px;
+    display: block;
+}
+
+.overlay-content button {
+    margin-top: 25px;
+    background-color: #28a745;
+}
+
+.overlay-content button:hover {
+    background-color: #218838;
+}
+
+#give-up-overlay .overlay-content h2 {
+    color: #d9534f;
+}
+
+#give-up-overlay .overlay-content button {
+    background-color: #008CBA;
+}

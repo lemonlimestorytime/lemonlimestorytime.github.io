@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sliding Puzzle Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="start-screen" class="game-screen active">
+        <h1>Sliding Tiles</h1>
+        <button id="startButton">Start Game</button>
+        <p id="credit-text">Created by Lemon & Lime Gamess</p> </div>
+
+    <div id="rules-screen" class="game-screen hidden">
+        <h1>How to Play</h1>
+        <p>Rearrange the numbered tiles in ascending order (1-8, with the empty space in the last position).</p>
+        <p>Click on a tile adjacent (horizontally or vertically) to the empty space to move it.</p>
+        <p>Try to solve the puzzle in the fastest time possible!</p>
+        <button id="playNowButton">Play Now!</button>
+    </div>
+
+    <div id="game-container" class="game-screen hidden">
+        <h1>Sliding Puzzle Game</h1>
+        <div id="game-info">
+            <span id="timer-display">Time: 00:00</span>
+            <span id="moves-display">Moves: 0</span>
+        </div>
+        <div id="puzzle-container">
+            </div>
+        <div id="controls">
+            <button id="resetGameButton">New Game</button>
+            <button id="giveUpButton">Give Up</button>
+        </div>
+        <p id="message-display"></p>
+    </div>
+
+    <div id="completion-overlay" class="game-overlay">
+        <div class="overlay-content">
+            <h2>Congratulations!</h2>
+            <p>You solved the puzzle!</p>
+            <p>Your stats: <span id="final-time"></span></p>
+            <button id="playNewGameButton">Play a New Game!</button>
+        </div>
+    </div>
+
+    <div id="give-up-overlay" class="game-overlay">
+        <div class="overlay-content">
+            <h2>Game Over</h2>
+            <p id="give-up-message">Sorry, but try again later.</p>
+            <button id="tryAgainButton">Try Again</button>
+        </div>
+    </div>
+
+    <script src="SlidingTimes_main.js"></script>
+</body>
+</html>
