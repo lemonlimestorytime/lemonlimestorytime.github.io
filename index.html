@@ -12,77 +12,124 @@
     body {
       margin: 0;
       padding: 0;
-      font-family: 'Nunito', sans-serif; /* A modern, friendly sans-serif font */
-      background-color: #e0f7fa; /* A slightly softer, inviting blue */
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(135deg, #e0f7fa, #bbdefb); /* Soft blue gradient */
       color: #333;
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-height: 100vh; /* Ensure body takes full viewport height */
-      justify-content: center; /* Center content vertically */
+      min-height: 100vh;
+      justify-content: space-between; /* Distribute space */
+      box-sizing: border-box; /* Include padding in element's total width and height */
+      padding-top: 50px; /* Space from the top for the header */
+      padding-bottom: 30px; /* Space from the bottom for the footer */
     }
 
     /* Header Styles */
     h1 {
-      font-family: 'Chakra Petch', sans-serif; 
-      font-size: 3.5em; 
-      color: #2196f3; 
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 4em; /* Slightly larger for impact */
+      color: #0d47a1; /* Deeper blue */
       text-align: center;
-      margin-bottom: 50px;
-      text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
-      letter-spacing: 2px; 
+      margin-bottom: 20px; /* Reduced margin, will add to paragraph */
+      text-shadow: 4px 4px 10px rgba(0, 0, 0, 0.15); /* Stronger shadow */
+      letter-spacing: 3px; /* More spacing */
+      animation: fadeInDown 1s ease-out; /* Animation for the title */
     }
 
     h3 {
-      font-family: 'Chakra Petch', sans-serif; 
-      font-size: 1.5em;
-      color: #80f321e6;
+      font-family: 'Nunito', sans-serif; /* Changed to Nunito for better readability as a subtitle */
+      font-size: 1.6em;
+      color: #424242; /* Darker grey for better contrast */
       text-align: center;
-      margin-bottom: 50px;
-      text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1); 
-      letter-spacing: 2px; 
+      margin-bottom: 40px; /* More space before game list */
+      line-height: 1.6; /* Better readability */
+    }
+
+    h3 a {
+      color: #1976d2; /* Link color */
+      text-decoration: none;
+      font-weight: 700; /* Bold the link */
+      transition: color 0.2s ease-in-out;
+    }
+
+    h3 a:hover {
+      color: #0d47a1; /* Darker blue on hover */
+      text-decoration: underline;
     }
 
     /* Navigation List Styles */
     .game-list {
-      list-style-type: none; /* Remove bullet points */
+      list-style-type: none;
       padding: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 20px; /* Space between list items */
+      display: grid; /* Use CSS Grid for better layout */
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive columns */
+      gap: 25px; /* Space between grid items */
+      width: 80%; /* Constrain width */
+      max-width: 900px; /* Max width for larger screens */
+      margin-top: 30px; /* Add some margin from the subtitle */
+      padding-bottom: 50px; /* Space before footer */
     }
 
     .game-list li {
-      background-color: #ffffff; /* White background for list items */
-      border-radius: 10px; /* Rounded corners */
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
-      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth hover effects */
+      background-color: #ffffff;
+      border-radius: 15px; /* More rounded corners */
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); /* Slightly stronger shadow */
+      transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+      overflow: hidden; /* Ensure content stays within rounded corners */
+      position: relative; /* For potential image overlays */
     }
 
     .game-list li:hover {
-      transform: translateY(-5px); /* Lift effect on hover */
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+      transform: translateY(-8px); /* More pronounced lift */
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
     }
 
     .game-list a {
-      text-decoration: none; /* Remove underline from links */
-      color: #007bff; /* A standard blue for links */
+      text-decoration: none;
+      color: #007bff;
       font-weight: bold;
-      font-size: 1.5em; /* Larger link text */
-      display: block; /* Make the entire list item clickable */
-      padding: 15px 30px; /* Ample padding inside the link area */
+      font-size: 1.6em;
+      display: flex; /* Use flex for alignment of text and potential icon */
+      align-items: center;
+      justify-content: center; /* Center content horizontally */
+      padding: 20px 30px;
       text-align: center;
+      min-height: 100px; /* Ensure consistent height for all game cards */
     }
 
     .game-list a:hover {
-      color: #0056b3; /* Darker blue on hover */
+      color: #0056b3;
+    }
+
+    /* Footer Styles */
+    footer {
+      text-align: center;
+      color: #616161; /* Muted color for footer text */
+      font-size: 0.9em;
+      margin-top: 50px; /* Space above footer */
+      line-height: 1.8; /* Improve readability */
+    }
+
+    /* Keyframe Animations */
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
   </style>
 </head>
 <body>
 
   <h1>Lemon & Lime Games!</h1>
-  <h3> Visit my Youtube channel: <a href = "https://www.youtube.com/@LemonLimeStoryTime"> Lemon & Lime Storytime</a> </h3>
+  <h3> I wanted to share games that I created with AI :) <br>
+    You can also visit my YouTube channel: <a href="https://www.youtube.com/@LemonLimeStoryTime" target="_blank" rel="noopener noreferrer">Lemon & Lime Story Time</a>
+  </h3>
 
   <ul class="game-list">
     <li><a href="balloon.html">Balloon Blower</a></li>
@@ -90,6 +137,11 @@
     <li><a href="bowling/bowling_index.html">Bowling</a></li>
     <li><a href="SlidingTiles/SlidingTiles_index.html">Sliding Tiles (puzzle)</a></li>
   </ul>
+
+  <footer>
+    <p>© 2025 Lemon & Lime Story Time. All Rights Reserved.</p>
+    <p>lemonlimestorytime@gmail.com</p>
+  </footer>
 
 </body>
 </html>
