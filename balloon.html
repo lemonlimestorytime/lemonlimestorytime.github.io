@@ -121,13 +121,14 @@
         const instructionText = document.getElementById('instructionText');
         const scoreText = document.getElementById('scoreText'); // This will be used for final score on game over
 
-        // NEW: Get the time display element
+        // Get the time display element
         const timeDisplay = document.getElementById('timeDisplay');
 
         // --- Game Constants (from your Python script) ---
         const BALLOON_RADIUS = 30;
         const BALLOON_COLOR = 'red';
-        const GRAVITY = 0.3;
+        const MAX_VELOCITY = 4;
+        const GRAVITY = 0.2;
         const FAN_WIND_HEIGHT = 150;
         const MIN_FAN_LAUNCH_VELOCITY = -20.0;
         const MAX_FAN_LAUNCH_VELOCITY = -14.0;
@@ -139,7 +140,6 @@
         const FAN_SPEED = 7;
 
         // --- Game State Variables ---
-        // MODIFIED: Added a new game state for the rules screen
         let gameState = "START_SCREEN"; // Initial state
         let score = 0;
         let startTime = 0; // Milliseconds from performance.now()
@@ -164,8 +164,8 @@
 
             applyGravity() {
                 this.velocityY += GRAVITY;
-                if (this.velocityY > 10) { // Cap downward speed
-                    this.velocityY = 10;
+                if (this.velocityY > MAX_VELOCITY) { // Cap downward speed
+                    this.velocityY = MAX_VELOCITY;
                 }
             }
 
@@ -264,7 +264,7 @@
 
             // Hide overlay messages
             gameOverlay.style.display = 'none';
-            // NEW: Show time display during gameplay
+            // Show time display during gameplay
             timeDisplay.style.display = 'block';
             scoreText.style.display = 'none'; // Ensure final score is hidden during play
         }
@@ -276,7 +276,7 @@
             } else if (event.code === 'ArrowRight') {
                 fan.speedX = FAN_SPEED;
             } else if (event.code === 'Space') {
-                // MODIFIED: Handle transitions between start, rules, and game states
+                // Handle transitions between start, rules, and game states
                 if (gameState === "START_SCREEN") {
                     gameState = "RULES_SCREEN"; // Go to rules screen first
                 } else if (gameState === "RULES_SCREEN" || gameState === "GAME_OVER") {
@@ -308,15 +308,12 @@
                     // Display final score on overlay
                     titleText.textContent = "GAME OVER!";
                     titleText.style.color = 'red';
-                    // MODIFIED: Format final score to 1 decimal place
                     instructionText.textContent = `You lasted: ${score.toFixed(1)} seconds!`; 
                     scoreText.style.display = 'block'; // Show final score
                     gameOverlay.style.display = 'block'; // Show overlay
-                    // NEW: Hide time display on game over
                     timeDisplay.style.display = 'none'; 
                 }
 
-                // MODIFIED: Update score (time elapsed) - removed Math.floor()
                 score = (performance.now() - startTime) / 1000; 
             }
 
@@ -336,14 +333,12 @@
                 ctx.stroke();
                 ctx.closePath();
 
-                // MODIFIED: Update the dedicated time display element toFixed(1)
                 if (gameState === "PLAYING") {
                     timeDisplay.textContent = `Time: ${score.toFixed(1)}`;
                 }
             }
 
             // Display game state messages via HTML overlay
-            // MODIFIED: Added RULES_SCREEN state handling
             if (gameState === "START_SCREEN") {
                 gameOverlay.style.display = 'block';
                 titleText.textContent = "Balloon Blower!";

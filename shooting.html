@@ -46,6 +46,7 @@
             align-items: center; /* Center horizontally */
             width: 100%; /* Take full width to center text reliably */
             height: 100%; /* Take full height to center text reliably */
+            max-width: 80%;
         }
 
         .game-message h1 {
@@ -53,6 +54,7 @@
             color: #ffffff; /* White for title */
             margin-bottom: 20px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3); /* Text shadow */
+            max-width: 80%;
         }
 
         /* Default paragraph styling */
@@ -60,7 +62,7 @@
             font-size: 1.8em; /* Medium font for instructions/score */
             margin-top: 10px;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.2); /* Text shadow */
-            max-width: 80%; /* Limit width to prevent overflow */
+            max-width: 60%; /* Limit width to prevent overflow */
             word-wrap: break-word; /* Allow long words to break */
             overflow-wrap: break-word; /* Standard property for word breaking */
         }
@@ -73,16 +75,10 @@
 
         /* Specific styling for rules screen paragraphs (the main rules) */
         .game-message p.rule-text {
-            font-size: 1.1em; /* Smaller font for rules text */
-            margin-top: 5px; /* Reduced margin for tighter packing */
-            line-height: 1.3; /* Adjust line height for better fit */
-        }
-
-        /* Specific styling for the 'Press S to Play' text on rule screen */
-        .game-message p.rules-play-button {
-            font-size: 1.6em; /* Slightly larger than rule text, but smaller than default */
-            /* margin-top: auto; /* Pushes this element to the very bottom */
-            /* padding-bottom: 10px; /* Add some padding from the absolute bottom */
+            font-size: 1em; /* Smaller font for rules text */
+            justify-content: center; /* Center vertically by default */
+            margin-top: 0px; /* Reduced margin for tighter packing */
+            align-items: center; /* Center horizontally */
         }
 
         .game-message .green-text {
@@ -118,18 +114,17 @@
         }
     </style>
 </head>
+
 <body>
     <canvas id="gameCanvas"></canvas>
 
     <div id="gameOverlay" class="game-message">
-        <h1 id="titleText" class="blue-text">Space Shooter</h1>
-        <p id="instructionText" class="green-text">Press 'S' to Start</p>
-        <p id="creditText">Created by Lemon & Lime Games</p>
+        <h1 id="titleText" style="display: none;"></h1>
+        <p id="ruleText" style="display: none;"></p>
         <p id="scoreInfoText" style="display: none;"></p>
-        <p id="hpInfoText" style="display: none;"></p>
-        <p id="ruleMoveText" style="display: none;"></p>
-        <p id="ruleShootText" style="display: none;"></p>
-        <p id="timeInfoText" style="display: none;"></p> </div>
+        <p id="pressSpaceText" style="display: none;"></p>
+        <p id="creditText" style="display: none;"></p>
+    </div>
 
     <script>
         // Get the canvas and its 2D rendering context
@@ -145,15 +140,10 @@
         // Get overlay elements
         const gameOverlay = document.getElementById('gameOverlay');
         const titleText = document.getElementById('titleText');
-        const instructionText = document.getElementById('instructionText');
-        const creditText = document.getElementById('creditText');
         const scoreInfoText = document.getElementById('scoreInfoText');
-        const hpInfoText = document.getElementById('hpInfoText');
-        const timeInfoText = document.getElementById('timeInfoText');
-
-        const ruleMoveText = document.getElementById('ruleMoveText');
-        const ruleShootText = document.getElementById('ruleShootText');
-
+        const ruleText = document.getElementById('ruleText');
+        const pressSpaceText = document.getElementById('pressSpaceText');
+        const creditText = document.getElementById('creditText');
 
         // --- Game Constants (from your Python script) ---
         const PLAYER_SPEED = 5;
@@ -494,119 +484,92 @@
 
             // Display game state messages via HTML overlay OR draw in-game stats on canvas
             if (gameState === "START_SCREEN") {
-                gameOverlay.style.display = 'flex'; // Use flex to center overlay
-                gameOverlay.style.flexDirection = 'column'; // Ensure vertical stacking
-                gameOverlay.style.justifyContent = 'center'; // Reset to default centering
-                gameOverlay.style.alignItems = 'center'; // Reset to default centering
-                gameOverlay.style.padding = '0'; // Reset padding
-
-                //titleText.textContent = "Space Shooter";
-                //titleText.className = ''; // Remove rules-title class
-                //titleText.style.marginBottom = '20px'; // Reset margin
-
-                //instructionText.textContent = "Press 'S' to Start";
-                //instructionText.className = 'green-text'; // Apply green color class
-                //instructionText.style.marginTop = '10px'; // Reset margin
-                //instructionText.style.display = 'block'; // Make sure it's visible
-
-                //creditText.textContent = "Created by Lemon & Lime Games";
-                //creditText.style.marginTop = '8px'; // Reset margin
-                //creditText.style.display = 'block'; // Make sure it's visible
-
-                // Hide all other info texts and ensure no specific rule styles
-                scoreInfoText.style.display = 'none';
-                scoreInfoText.className = '';
-                hpInfoText.style.display = 'none';
-                hpInfoText.className = '';
-                timeInfoText.style.display = 'none';
-                timeInfoText.className = '';
-                ruleMoveText.style.display = 'none';
-                ruleMoveText.className = '';
-                ruleShootText.style.display = 'none';
-                ruleShootText.className = '';
-
-            } else if (gameState === "RULES_SCREEN") { // New RULES_SCREEN state
                 gameOverlay.style.display = 'flex';
-                gameOverlay.style.flexDirection = 'column'; // Stack items vertically
-                gameOverlay.style.justifyContent = 'center'; // <--- CHANGE THIS: Centers the content block vertically
-                gameOverlay.style.alignItems = 'center'; // Center horizontally
-                gameOverlay.style.padding = '20px'; // Add some padding around the rules
-                gameOverlay.style.gap = '15px'; // <--- ADD THIS: Adds space between flex items
+                gameOverlay.style.flexDirection = 'column';
+                gameOverlay.style.justifyContent = 'center';
+                gameOverlay.style.alignItems = 'center';
+                gameOverlay.style.padding = '0';
+
+                titleText.textContent = "Space Shooter";
+                titleText.style.display='block';
+                titleText.style.marginBottom = '20px';
+
+                ruleText.style.display = 'none';
+                scoreInfoText.style.display = 'none';
+
+                pressSpaceText.textContent = "Press 'S' to Start";
+                pressSpaceText.className = 'green-text'; 
+                pressSpaceText.style.marginTop = '100px';
+                pressSpaceText.style.display = 'block';
+
+                creditText.textContent = "Created by Lemon & Lime Games";
+                creditText.style.marginTop = '100px';
+                creditText.style.display = 'block';
+
+            } else if (gameState === "RULES_SCREEN") { // RULES_SCREEN state
+                gameOverlay.style.display = 'flex';
+                gameOverlay.style.flexDirection = 'column';
+                gameOverlay.style.justifyContent = 'center';
+                gameOverlay.style.alignItems = 'center';
+                gameOverlay.style.padding = '20px';
+                gameOverlay.style.gap = '15px';
 
                 titleText.textContent = "Game Rules";
-                titleText.className = 'rules-title'; // Apply smaller title class
-                titleText.style.marginBottom = '0'; // <--- CHANGE THIS: Reset margin as gap handles spacing
-                titleText.style.display = 'block'; // Ensure visibility
+                titleText.className = 'rules-title';
+                titleText.style.marginBottom = '0'; 
+                titleText.style.display = 'block';
 
-                // Make sure all rule-related texts are visible and styled
-                instructionText.textContent = "Shoot falling targets for points.";
-                instructionText.className = 'rule-text';
-                instructionText.style.display = 'block';
+                ruleText.innerText = `
+                Shoot falling targets! 
 
-                scoreInfoText.textContent = "Lose HP if you get hit by targets or let them pass the bottom.";
-                scoreInfoText.className = 'rule-text';
-                scoreInfoText.style.display = 'block';
+                Move: Left/Right Arrow Keys 
+                Shoot: Spacebar
 
-                hpInfoText.textContent = "Game over if HP reaches 0.";
-                hpInfoText.className = 'rule-text';
-                hpInfoText.style.display = 'block';
+                Lose HP if a target hits you or reaches the bottom. 
+                Game over if HP reaches 0.                 
+                `;
+                ruleText.style.fontSize = "1.5em";
+                ruleText.style.display = 'block';
 
-                ruleMoveText.textContent = "Move: Left/Right Arrow Keys";
-                ruleMoveText.className = 'rule-text';
-                ruleMoveText.style.display = 'block';
+                scoreInfoText.style.display = 'none';
 
-                ruleShootText.textContent = "Shoot: Spacebar";
-                ruleShootText.className = 'rule-text';
-                ruleShootText.style.display = 'block';
-
-                // This element will now be spaced by 'gap'
-                timeInfoText.textContent = "Press 'S' to Play!";
-                timeInfoText.className = 'green-text'; // Remove rules-play-button class, it's not needed with gap
-                timeInfoText.style.marginTop = '0'; // <--- CHANGE THIS: Reset margin as gap handles spacing
-                timeInfoText.style.paddingBottom = '0'; // <--- CHANGE THIS: Reset padding as gap handles spacing
-                timeInfoText.style.display = 'block';
+                pressSpaceText.textContent = "Press 'S' to Start";
+                pressSpaceText.className = 'green-text';
+                pressSpaceText.style.marginTop = '10px';
+                pressSpaceText.style.display = 'block';
+                creditText.textContent = "";
 
             } else if (gameState === "GAME_OVER") {
                 gameOverlay.style.display = 'flex';
-                gameOverlay.style.flexDirection = 'column'; // Ensure vertical stacking
-                gameOverlay.style.justifyContent = 'center'; // Reset to center for game over screen
-                gameOverlay.style.alignItems = 'center'; // Reset to center
-                gameOverlay.style.padding = '0'; // Remove padding
-
-                titleText.className = ''; // Remove rules-title class
-                titleText.style.marginBottom = '20px'; // Reset margin
+                gameOverlay.style.flexDirection = 'column';
+                gameOverlay.style.justifyContent = 'center';
+                gameOverlay.style.alignItems = 'center'; 
+                gameOverlay.style.padding = '0'; 
 
                 titleText.textContent = "GAME OVER!";
-                titleText.style.color = RED;
-                titleText.style.display = 'block'; // Ensure it's visible
+                titleText.className = 'red-text';
+                titleText.style.marginBottom = '20px';
+                titleText.style.display = 'block';
 
-                instructionText.textContent = `Final Score: ${score}`;
-                instructionText.className = ''; // Remove any specific rule classes
-                instructionText.style.marginTop = '10px';
-                instructionText.style.display = 'block';
+                ruleText.style.display = 'none';
 
-                // Ensure all other rules-related texts are hidden and their classes reset
-                scoreInfoText.style.display = 'none';
-                scoreInfoText.className = '';
-                ruleMoveText.style.display = 'none';
-                ruleMoveText.className = '';
-                ruleShootText.style.display = 'none';
-                ruleShootText.className = '';
+                scoreInfoText.textContent = `Final Score: ${score}`;
+                scoreInfoText.style.marginTop = '10px';
+                scoreInfoText.style.display = 'block';
+                scoreInfoText.style.display = 'block'; // Ensure it's visible
 
                 const timeSinceGameOver = currentTime - gameOverTime;
                 const restartCountdown = Math.max(0, Math.ceil((RESTART_DELAY - timeSinceGameOver) / 1000));
 
                 if (restartCountdown > 0) {
-                    hpInfoText.textContent = `Restart in: ${restartCountdown}s`;
-                    hpInfoText.className = ''; // No special color during countdown
+                    pressSpaceText.textContent = `Restart in: ${restartCountdown}s`;
+                    pressSpaceText.className = ''; // No special color during countdown
                 } else {
-                    hpInfoText.textContent = "Press 'S' to Play Again";
-                    hpInfoText.className = 'green-text'; // Apply green color for restart
+                    pressSpaceText.textContent = "Press 'S' to Play Again";
+                    pressSpaceText.className = 'green-text'; // Apply green color for restart
                 }
-                hpInfoText.style.display = 'block';
-                hpInfoText.style.marginTop = '10px';
-                timeInfoText.style.display = 'none'; // Hide the "Press S to Play" from rules screen
-                timeInfoText.className = '';
+                pressSpaceText.style.display = 'block';
+                pressSpaceText.style.marginTop = '10px';
 
 
             } else { // This handles the "PLAYING" state
