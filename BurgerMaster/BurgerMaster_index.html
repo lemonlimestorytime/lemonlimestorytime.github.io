@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burger Master</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="title-screen">
+        <h1>Burger Master</h1>
+        <p>A Fast-Paced Burger Building Game!</p>
+        <button id="show-rules-button">Start Game</button> 
+        <p class="created-by">Created by Lemon & Lime Games</p>
+    </div>
+
+    <div id="rules-screen" class="hidden">
+        <h2>How to Play Burger Master</h2>
+        <p>Your goal is to build the correct burger according to the customer's order before time runs out!</p>
+        <ul>
+            <li>Click on ingredients in the tray to add them to your burger.</li>
+            <li>Ingredients must be added in the exact order shown in the current order list.</li>
+            <li>Click "Serve Burger" when you believe your burger is complete and matches the order.</li>
+            <li>Correct burgers earn points, incorrect ones deduct points.</li>
+            <li>Work fast! You only have 60 seconds!</li>
+        </ul>
+        <button id="start-game-button">Start Game!</button>
+        <button id="back-to-title-button">Back to Title</button>
+    </div>
+
+    <div id="game-container" class="hidden">
+        <div id="main-game-content">
+            <div id="score-timer">
+                <p>Score: <span id="score">0</span></p>
+                <p>Time: <span id="timer">60</span>s</p>
+            </div>
+
+            <div id="game-sections-layout">
+                <div id="ingredient-section">
+                    <h2>Ingredients</h2>
+                    <div id="ingredients-tray">
+                        <div class="ingredient-item">
+                            <div class="ingredient" data-ingredient="bottom-bun"></div>
+                            <span class="ingredient-label">Bottom Bun</span>
+                        </div>
+                        <div class="ingredient-item">
+                            <div class="ingredient" data-ingredient="patty"></div>
+                            <span class="ingredient-label">Patty</span>
+                        </div>
+                        <div class="ingredient-item">
+                            <div class="ingredient" data-ingredient="cheese"></div>
+                            <span class="ingredient-label">Cheese</span>
+                        </div>
+                        <div class="ingredient-item">
+                            <div class="ingredient" data-ingredient="lettuce"></div>
+                            <span class="ingredient-label">Lettuce</span>
+                        </div>
+                        <div class="ingredient-item">
+                            <div class="ingredient" data-ingredient="tomato"></div>
+                            <span class="ingredient-label">Tomato</span>
+                        </div>
+                        <div class="ingredient-item">
+                            <div class="ingredient" data-ingredient="top-bun"></div>
+                            <span class="ingredient-label">Top Bun</span>
+                        </div>
+                        <div class="ingredient-item">
+                            <div class="ingredient" data-ingredient="bacon"></div>
+                            <span class="ingredient-label">Bacon</span>
+                        </div>
+                        <div class="ingredient-item">
+                            <div class="ingredient" data-ingredient="onion"></div>
+                            <span class="ingredient-label">Onion</span>
+                        </div>
+                        <div class="ingredient-item">
+                            <div class="ingredient" data-ingredient="pickles"></div>
+                            <span class="ingredient-label">Pickles</span>
+                        </div>
+                        <div class="ingredient-item">
+                            <div class="ingredient" data-ingredient="ketchup"></div>
+                            <span class="ingredient-label">Ketchup</span>
+                        </div>
+                        <div class="ingredient-item">
+                            <div class="ingredient" data-ingredient="mustard"></div>
+                            <span class="ingredient-label">Mustard</span>
+                        </div>
+                        <div class="ingredient-item">
+                            <div class="ingredient" data-ingredient="egg"></div>
+                            <span class="ingredient-label">Egg</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="burger-order-row">
+                    <div id="server-section">
+                        <h2>Your Burger</h2>
+                        <div id="assembly-area">
+                            <div id="burger-stack"></div>
+                            <button id="serve-button">Serve Burger</button>
+                        </div>
+                    </div>
+
+                    <div id="order-section">
+                        <h2>Current Order</h2>
+                        <div id="order-display">
+                            <ul id="current-order-list">
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="game-over-screen" class="hidden">
+        <h2>Game Over!</h2>
+        <p>Your final score: <span id="final-score">0</span></p>
+        <button id="restart-button">Play Again</button>
+    </div>
+
+    <script src="BurgerMaster_main.js"></script>
+</body>
+</html>

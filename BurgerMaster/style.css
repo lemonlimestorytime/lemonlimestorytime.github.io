@@ -1,0 +1,331 @@
+body {
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f0f0;
+    margin: 0;
+}
+
+/* Base styles for full-screen overlay screens (Title, Rules, Game Over) */
+#title-screen, #rules-screen, #game-over-screen {
+    position: fixed; /* Use fixed to ensure they cover the whole viewport */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f0f0; /* Default background for these screens */
+    z-index: 100; /* Ensure they are on top */
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center; /* Center text within these screens */
+}
+
+/* Specific styles for title screen */
+#title-screen h1 {
+    font-size: 3em;
+    color: #333;
+    margin-bottom: 10px;
+}
+#title-screen p {
+    font-size: 1.2em;
+    color: #555;
+    margin-bottom: 30px;
+}
+.created-by {
+    position: absolute;
+    bottom: 20px;
+    font-size: 0.9em;
+    color: #777;
+}
+
+/* Specific styles for rules screen */
+#rules-screen h2 {
+    font-size: 2.5em;
+    color: #333;
+    margin-bottom: 20px;
+}
+#rules-screen ul {
+    list-style: none;
+    padding: 0;
+    max-width: 600px;
+    margin: 0 auto 30px auto;
+    text-align: left;
+}
+#rules-screen ul li {
+    background-color: #e9e9e9;
+    margin-bottom: 8px;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 1.1em;
+    color: #444;
+}
+
+/* Game over screen specific styles */
+#game-over-screen {
+    background-color: rgba(0, 0, 0, 0.9); /* Darker overlay */
+    color: white;
+    z-index: 200; /* Highest z-index */
+}
+#game-over-screen h2 {
+    font-size: 3em;
+    margin-bottom: 20px;
+}
+#game-over-screen p {
+    font-size: 1.5em;
+    margin-bottom: 30px;
+}
+
+/* Styles for all buttons on title/rules/game-over screens */
+#title-screen button, #rules-screen button, #game-over-screen button {
+    padding: 15px 30px;
+    font-size: 1.5em;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin: 10px; /* Add some space between buttons */
+}
+#title-screen button:hover, #rules-screen button:hover, #game-over-screen button:hover {
+    background-color: #45a049;
+}
+
+
+/* MAIN GAME CONTAINER - This is the central box for the active game */
+#game-container {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 90%;
+    max-width: 1000px;
+    /* No absolute positioning here, it's a standard block element within body's flex */
+    box-sizing: border-box; /* Include padding in width */
+    z-index: 10; /* Lower than overlay screens */
+}
+
+/* Main game content wrapper (inside game-container) */
+#main-game-content {
+    display: flex;
+    flex-direction: column; /* Stack score-timer and game-sections-layout vertically */
+    align-items: center; /* Center content horizontally */
+    text-align: center;
+}
+
+#main-game-content > h1 { /* Targeting the game title within the main content */
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+#score-timer {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+/* NEW: Styles for the main game sections layout (ingredients above burger/order) */
+#game-sections-layout {
+    display: flex;
+    flex-direction: column; /* Stack ingredient-section and burger-order-row vertically */
+    gap: 20px; /* Space between rows */
+    width: 100%; /* Take full width of its parent */
+}
+
+#ingredient-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center content horizontally */
+    flex: 1; /* Allows it to grow/shrink vertically */
+    /* Remove min-width here as it's now a full-width row item */
+}
+
+#burger-order-row {
+    display: flex; /* Arrange burger and order side-by-side */
+    gap: 20px; /* Space between burger and order sections */
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    justify-content: center; /* Center items if they wrap */
+    flex: 1; /* Allows it to grow/shrink vertically */
+}
+
+#server-section {
+    flex: 1; /* Allows it to grow and shrink */
+    min-width: 250px; /* Minimum width for server area before wrapping */
+    display: flex;
+    flex-direction: column; /* Stack contents vertically within the server section */
+    align-items: center; /* Center content horizontally */
+}
+
+#order-section {
+    flex: 1; /* Allows it to grow and shrink */
+    min-width: 250px; /* Minimum width for order display before wrapping */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center content horizontally */
+}
+
+
+#order-display, #assembly-area, #ingredients-tray {
+    margin-bottom: 20px;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 5px;
+    width: 100%; /* Make them fill their parent sections */
+    box-sizing: border-box; /* Include padding in width */
+    min-height: 100px; /* Adjust as needed */
+}
+
+#order-display {
+    flex-grow: 1; /* Allow order display to grow and fill available height */
+}
+
+#order-display ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+}
+
+#order-display ul li {
+    background-color: #f5f5f5;
+    margin-bottom: 5px;
+    padding: 8px;
+    border-radius: 3px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Styling for the H2s that are direct children of the main sections (Ingredients, Order, Your Burger) */
+#ingredient-section > h2,
+#order-section > h2,
+#server-section > h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+
+#ingredients-tray {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    /* margin-bottom: 20px; - already in general rule */
+    /* border: 1px solid #eee; - already in general rule */
+    /* padding: 15px; - already in general rule */
+    /* border-radius: 5px; - already in general rule */
+    min-height: 120px;
+    /* width: 100%; - already in general rule */
+    /* box-sizing: border-box; - already in general rule */
+}
+
+.ingredient-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 5px;
+    transition: transform 0.1s ease-in-out;
+}
+
+.ingredient-item:hover {
+    transform: translateY(-3px);
+    background-color: #e9e9e9;
+}
+
+.ingredient {
+    width: 80px;
+    height: 80px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-bottom: 5px;
+}
+
+.ingredient-label {
+    font-size: 0.9em;
+    color: #333;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Basic styling for different ingredients - add more as needed */
+.ingredient[data-ingredient="bottom-bun"] { background-color: #deb887; }
+.ingredient[data-ingredient="patty"] { background-color: #8B4513; }
+.ingredient[data-ingredient="cheese"] { background-color: #FFD700; }
+.ingredient[data-ingredient="lettuce"] { background-color: #90EE90; }
+.ingredient[data-ingredient="tomato"] { background-color: #FF6347; }
+.ingredient[data-ingredient="top-bun"] { background-color: #deb887; }
+.ingredient[data-ingredient="bacon"] { background-color: #b32d00; }
+.ingredient[data-ingredient="onion"] { background-color: #e6e6fa; }
+.ingredient[data-ingredient="pickles"] { background-color: #8fbc8f; }
+.ingredient[data-ingredient="ketchup"] { background-color: #ff0000; }
+.ingredient[data-ingredient="mustard"] { background-color: #ffd700; }
+.ingredient[data-ingredient="egg"] { background-color: #fffacd; border: 1px dashed orange; }
+
+
+#burger-stack {
+    display: flex;
+    flex-direction: column-reverse; /* Stack from bottom up */
+    align-items: center;
+    min-height: 150px;
+    border: 1px dashed #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.assembled-ingredient {
+    width: 90%;
+    height: 40px;
+    border: 1px solid #555;
+    margin-bottom: -15px; /* Overlap for stacking effect */
+    border-radius: 5px;
+}
+
+/* Re-use ingredient styles for assembled ones */
+.assembled-ingredient[data-ingredient="bottom-bun"] { background-color: #deb887; }
+.assembled-ingredient[data-ingredient="patty"] { background-color: #8B4513; }
+.assembled-ingredient[data-ingredient="cheese"] { background-color: #FFD700; }
+.assembled-ingredient[data-ingredient="lettuce"] { background-color: #90EE90; }
+.assembled-ingredient[data-ingredient="tomato"] { background-color: #FF6347; }
+.assembled-ingredient[data-ingredient="top-bun"] { background-color: #deb887; }
+.assembled-ingredient[data-ingredient="bacon"] { background-color: #b32d00; }
+.assembled-ingredient[data-ingredient="onion"] { background-color: #e6e6fa; }
+.assembled-ingredient[data-ingredient="pickles"] { background-color: #8fbc8f; }
+.assembled-ingredient[data-ingredient="ketchup"] { background-color: #ff0000; }
+.assembled-ingredient[data-ingredient="mustard"] { background-color: #ffd700; }
+.assembled-ingredient[data-ingredient="egg"] { background-color: #fffacd; }
+
+
+/* Serve button in game */
+#serve-button {
+    padding: 10px 20px;
+    font-size: 1.1em;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+#serve-button:hover {
+    background-color: #45a049;
+}
+
+.hidden {
+    display: none !important; /* Important to ensure it overrides flex/block */
+}
